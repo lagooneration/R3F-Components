@@ -4,28 +4,15 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useMemo, useRef, useState } from 'react'
-import { Line, useCursor, MeshDistortMaterial } from '@react-three/drei'
+import { Line, useCursor, MeshShaderMaterial } from '@react-three/drei'
 import { useRouter } from 'next/navigation'
-import usePostProcess from '@/templates/hooks/usePostprocess'
+import dynamic from 'next/dynamic'
 
-export const Blob = ({ route = '/', ...props }) => {
-    const router = useRouter()
-    const [hovered, hover] = useState(false)
-    useCursor(hovered)
-    return (
-      <mesh
-        onClick={() => router.push(route)}
-        onPointerOver={() => hover(true)}
-        onPointerOut={() => hover(false)}
-        {...props}>
-        <sphereGeometry args={[0.5, 64, 64]} />
-        <MeshDistortMaterial roughness={0.5} color={hovered ? 'hotpink' : '#1fb2f5'} />
-      </mesh>
-    )
-  }
+const Shader = dynamic(() => import('@/components/shader/Shader').then((mod) => mod.Shader), { ssr: false })
+const Heartbeat = dynamic(() => import('@/components/shader/Heartbeat').then((mod) => mod.Heartbeat), { ssr: false })
+const Blobs = dynamic(() => import('@/components/shader/Blobs').then((mod) => mod.Blobs), { ssr: false })
 
-export const PostProcessing = ({ route = '/', ...props }) => {
-  usePostProcess()
+const ShaderComponent = ({ route = '/', ...props }) => {
   const router = useRouter()
   const [hovered, hover] = useState(false)
   useCursor(hovered)
@@ -36,21 +23,25 @@ export const PostProcessing = ({ route = '/', ...props }) => {
       onPointerOut={() => hover(false)}
       {...props}>
       <sphereGeometry args={[0.5, 64, 64]} />
-      <MeshDistortMaterial roughness={0.5} color={hovered ? 'hotpink' : '#1fb2f5'} />
+      <Shader/>
     </mesh>
   )
 }
 
-// export const PostProcessing = () => {
-//     usePostProcess() // Call the hook inside the component
-//     return null
-//   }
+export default ShaderComponent
 
 
 
-// {/* @ts-ignore */}
-// <Line worldUnits points={points} color='#1fb2f5' lineWidth={0.15} />
-// {/* @ts-ignore */}
-// <Line worldUnits points={points} color='#1fb2f5' lineWidth={0.15} rotation={[0, 0, 1]} />
-// {/* @ts-ignore */}
-// <Line worldUnits points={points} color='#1fb2f5' lineWidth={0.15} rotation={[0, 0, -1]} />
+export const HeartbeatComponent = () => {
+  return <mesh>
+    <sphereGeometry args={[0.5, 64, 64]} />
+    <Heartbeat />
+  </mesh>
+}
+
+export const BlobsComponent = () => {
+  return <mesh>
+    {/* <sphereGeometry args={[0.5, 64, 64]} /> */}
+    <Blobs />
+  </mesh>
+}
